@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Order; // modèle commande
+use Illuminate\Support\Facades\DB;
+
+class CommandeController extends Controller
+{
+    // Afficher la liste des commandes en attente (statut 'payée' ou 'en attente')
+    public function listeEnAttente()
+    {
+        // Récupérer toutes les commandes dont le statut est 'payée' ou 'en attente'
+        $commandes = Order::whereIn('status', ['payée', 'en attente'])->with('puzzles')->get();
+
+        return view('admin.commandes.en_attente', compact('commandes'));
+    }
+
+    // Valider une commande (passer le statut de 'payée' à 'validée')
+    public function valider(int $id)
+    {
+        $commande = Order::findOrFail($id);
+        if ($commande->status === 'payée') {
+            $commande->status = 'validée';
+            $commande->save();
+
+            return redirect()->back()->with('success', "Commande #{$id} validée.");
+        }
+
+        return redirect()->back()->with('error', "La commande #{$id} ne peut pas être validée.");
+    }
+
+    // Marquer une commande comme expédiée
+    public function expedier(int $id)
+    {
+        $commande = Order::findOrFail($id);
+        if ($commande->status === 'validée') {
+            $commande->status = 'expédiée';
+            $commande->save();
+
+            return redirect()->back()->with('success', "Commande #{$id} marquée comme expédiée.");
+        }
+
+        return redirect()->back()->with('error', "La commande #{$id} ne peut pas être expédiée.");
+    }
+
+    // Supprimer une commande
+    public function supprimer(int $id)
+    {
+        $commande = Order::findOrFail($id);
+
+        DB::transaction(function () use ($commande) {
+            // Détache les puzzles associés
+            $commande->puzzles()->detach();
+            // Supprime la commande
+            $commande->delete();
+        });
+
+        return redirect()->back()->with('success', "Commande #{$id} supprimée.");
+    }
+}
