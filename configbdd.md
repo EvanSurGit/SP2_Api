@@ -1,4 +1,6 @@
+-- ======================
 -- Création de la base
+-- ======================
 CREATE DATABASE IF NOT EXISTS groupe2;
 USE groupe2;
 
