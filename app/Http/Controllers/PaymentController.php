@@ -37,7 +37,7 @@ class PaymentController extends Controller
       $method = $validated['payment_method'];
       $user   = $request->user();
   
-      // ?? Récup panier actif
+      // ?? Rï¿½cup panier actif
       $panier = Panier::where('user_id', $user->id)
           ->where('status', 'open')
           ->with('puzzles')
@@ -52,22 +52,23 @@ class PaymentController extends Controller
           return $carry + ($p->pivot->prix * $p->pivot->quantite);
       }, 0);
   
-      // ?? Définir statut selon paiement
+      // ?? Dï¿½finir statut selon paiement
       $status = match ($method) {
           'cheque' => 'en_attente',
-          'paypal' => 'payée',
-          'card'   => 'payée',
+          'paypal' => 'payee',
+          'card'   => 'payee',
       };
 
-      // ?? TRANSACTION COMPLÈTE
-      DB::transaction(function () use ($user, $panier, $total, $status) {
+      // ?? TRANSACTION COMPLï¿½TE
+      DB::transaction(function () use ($user, $panier, $total, $status, $method) {
   
-          // ? Création commande
+          // ? Crï¿½ation commande
           $order = Order::create([
               'user_id' => $user->id,
               'total' => $total,
               'status' => $status,
               'date_commande' => now(),
+              'mode_paiement' => $method,
           ]);
   
           // ? Lignes commande
@@ -116,7 +117,7 @@ class PaymentController extends Controller
       return redirect()
           ->route('checkout.success')
           ->with('showReviewPopup', true)
-          ->with('message', 'Paiement validé ! Commande créée.');
+          ->with('message', 'Paiement validï¿½ ! Commande crï¿½ï¿½e.');
     }
 
     public function confirm()

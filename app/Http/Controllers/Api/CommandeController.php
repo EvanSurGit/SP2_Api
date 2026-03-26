@@ -22,10 +22,10 @@ class CommandeController extends Controller
     public function valider($id)
     {
         $commande = Order::findOrFail($id);
-        $commande->status = 'validee';
+        $commande->status = 'payee';
         $commande->save();
 
-        return response()->json(['message' => 'Commande validee', 'commande' => $commande]);
+        return response()->json(['message' => 'Commande payee', 'commande' => $commande]);
     }
 
     // Marquer comme exp�di�e

@@ -33,5 +33,7 @@ Route::get('/commandes/{id}', [CommandeController::class, 'show'])->whereNumber(
 Route::post('/commandes/{id}/valider', [CommandeController::class, 'valider'])->whereNumber('id');
 Route::post('/commandes/{id}/expedier', [CommandeController::class, 'expedier'])->whereNumber('id');
 Route::delete('/commandes/{id}', [CommandeController::class, 'supprimer'])->whereNumber('id');
+// API pour récupérer toutes les commandes non expédiées
+Route::get('/commandes/non-expediees', [CommandeController::class, 'nonExpediees']);
 // Route pour afficher la page de d�tail Blade
 Route::get('/commandes/{id}/detail', [CommandeController::class, 'detail'])->whereNumber('id');
