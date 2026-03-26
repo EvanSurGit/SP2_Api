@@ -11,8 +11,8 @@ class CommandeController extends Controller
     // Liste toutes les commandes en attente
     public function enAttente()
     {
-    $commandes = Order::whereIn('status', ['payée', 'en_attente'])
-        ->with('user', 'puzzles')
+    $commandes = Order::whereIn('status', ['payee', 'en_attente'])
+        ->with(['user', 'puzzles'])
         ->get();
 
     return response()->json($commandes);
@@ -22,20 +22,20 @@ class CommandeController extends Controller
     public function valider($id)
     {
         $commande = Order::findOrFail($id);
-        $commande->status = 'validée';
+        $commande->status = 'validee';
         $commande->save();
 
-        return response()->json(['message' => 'Commande validée', 'commande' => $commande]);
+        return response()->json(['message' => 'Commande validee', 'commande' => $commande]);
     }
 
-    // Marquer comme expédiée
+    // Marquer comme expï¿½diï¿½e
     public function expedier($id)
     {
         $commande = Order::findOrFail($id);
-        $commande->status = 'expédiée';
+        $commande->status = 'expediee';
         $commande->save();
 
-        return response()->json(['message' => 'Commande expédiée', 'commande' => $commande]);
+        return response()->json(['message' => 'Commande expediee', 'commande' => $commande]);
     }
 
     // Supprimer une commande
@@ -44,13 +44,33 @@ class CommandeController extends Controller
         $commande = Order::findOrFail($id);
         $commande->delete();
 
-        return response()->json(['message' => 'Commande supprimée']);
+        return response()->json(['message' => 'Commande supprimee']);
     }
     
-    // Voir une commande
-    public function show($id)
-{
-    $commande = Order::findOrFail($id);
-    return response()->json($commande);
-}
+   // Voir une commande (dÃ©tail complet)
+   public function show($id)
+   {
+       $commande = Order::with(['user', 'puzzles'])->findOrFail($id);
+
+       // PrÃ©parer les donnÃ©es pour le JSON
+       $response = [
+           'id'          => $commande->id,
+           'user'        => $commande->user,
+           'date_commande' => $commande->date_commande,
+           'total'       => $commande->total,
+           'status'      => $commande->status,
+           'puzzles'     => $commande->puzzles->map(function($puzzle) use ($commande) {
+               $pivot = $puzzle->pivot;
+               return [
+                   'id'         => $puzzle->id,
+                   'nom'        => $puzzle->nom,
+                   'prix'       => $pivot->prix,
+                   'quantite'   => $pivot->quantite,
+                   'path_image' => $puzzle->path_image
+               ];
+           })
+       ];
+
+       return response()->json($response);
+   }
 }

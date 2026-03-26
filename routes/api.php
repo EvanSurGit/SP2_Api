@@ -11,14 +11,14 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 // --- PUZZLES -----------------------------------------------------------------
-// Routes spécifiques AVANT apiResource pour éviter les conflits avec {id}
+// Routes spï¿½cifiques AVANT apiResource pour ï¿½viter les conflits avec {id}
 Route::get('/puzzles/stock', [PuzzleController::class, 'stockAll']);
 Route::get('/puzzles/{id}/stock', [PuzzleController::class, 'stockView']);
 Route::patch('/puzzles/{id}/stock', [PuzzleController::class, 'updateStock']);
 Route::get('/puzzles/alertes/stock-bas', [PuzzleController::class, 'stockBas']);
 Route::get('/puzzles/alertes/ruptures', [PuzzleController::class, 'ruptures']);
 
-// apiResource génère automatiquement : index, show, store, update, destroy
+// apiResource gï¿½nï¿½re automatiquement : index, show, store, update, destroy
 Route::apiResource('puzzles', PuzzleController::class);
 
 // --- ADMIN -------------------------------------------------------------------
@@ -29,9 +29,9 @@ Route::get('/cat', [CatController::class, 'index']);
 
 // --- COMMANDES ---------------------------------------------------------------
 Route::get('/commandes/en-attente', [CommandeController::class, 'enAttente']);
-Route::get('/commandes/{id}', [CommandeController::class, 'show']);
-Route::post('/commandes/{id}/valider', [CommandeController::class, 'valider']);
-Route::post('/commandes/{id}/expedier', [CommandeController::class, 'expedier']);
-Route::delete('/commandes/{id}', [CommandeController::class, 'supprimer']);
-// Route pour afficher la page de détail Blade
+Route::get('/commandes/{id}', [CommandeController::class, 'show'])->whereNumber('id');
+Route::post('/commandes/{id}/valider', [CommandeController::class, 'valider'])->whereNumber('id');
+Route::post('/commandes/{id}/expedier', [CommandeController::class, 'expedier'])->whereNumber('id');
+Route::delete('/commandes/{id}', [CommandeController::class, 'supprimer'])->whereNumber('id');
+// Route pour afficher la page de dï¿½tail Blade
 Route::get('/commandes/{id}/detail', [CommandeController::class, 'detail'])->whereNumber('id');
