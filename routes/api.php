@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\PuzzleController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\CatController;
 use App\Http\Controllers\Api\CommandeController;
+use App\Http\Controllers\Api\AuthController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -29,9 +30,27 @@ Route::get('/cat', [CatController::class, 'index']);
 
 // --- COMMANDES ---------------------------------------------------------------
 Route::get('/commandes/en-attente', [CommandeController::class, 'enAttente']);
-Route::get('/commandes/{id}', [CommandeController::class, 'show'])->whereNumber('id');
-Route::post('/commandes/{id}/valider', [CommandeController::class, 'valider'])->whereNumber('id');
-Route::post('/commandes/{id}/expedier', [CommandeController::class, 'expedier'])->whereNumber('id');
-Route::delete('/commandes/{id}', [CommandeController::class, 'supprimer'])->whereNumber('id');
+Route::get('/commandes/{id}', [CommandeController::class, 'show']);
+Route::post('/commandes/{id}/valider', [CommandeController::class, 'valider']);
+Route::post('/commandes/{id}/expedier', [CommandeController::class, 'expedier']);
+Route::delete('/commandes/{id}', [CommandeController::class, 'supprimer']);
 // Route pour afficher la page de d�tail Blade
 Route::get('/commandes/{id}/detail', [CommandeController::class, 'detail'])->whereNumber('id');
+
+
+// --- LOGIN ---------------------------------------------------------------
+// Routes publiques
+Route::post('/login', [AuthController::class, 'login']);
+
+// Routes authentifiées
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me',      [AuthController::class, 'me']);
+
+    // Routes admin uniquement
+    Route::middleware('is_admin')->prefix('admin')->group(function () {
+        Route::get('/dashboard', function () {
+            return response()->json(['message' => 'Bienvenue sur le dashboard admin !']);
+        });
+    });
+});

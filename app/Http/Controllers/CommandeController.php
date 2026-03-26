@@ -15,28 +15,43 @@ class CommandeController extends Controller
         return view('admin.commandes.en_attente', compact('commandes'));
     }
 
+// Récupère toutes les commandes non expédiées (en_attente ou validee)
+    public function nonExpediees()
+    {
+        $commandes = Order::whereIn('status', ['en_attente', 'validee'])
+            ->with(['puzzles', 'user', 'adresseLivraison'])
+            ->get();
+
+        return response()->json(
+            $commandes->map(function ($commande) {
+                return [
+                    'id' => $commande->id,
+                    'user_id' => $commande->user_id,
+                    'total' => $commande->total,
+                    'status' => $commande->status,
+                    'date_commande' => $commande->date_commande,
+                    'created_at' => $commande->created_at,
+                    'updated_at' => $commande->updated_at,
+                    'mode_paiement' => $commande->mode_paiement,
+                ];
+            })
+        );
+    }
+
     // API : Afficher le d�tail d'une commande en JSON
     public function show(int $id)
     {
         $commande = Order::with(['puzzles', 'user', 'adresseLivraison'])->findOrFail($id);
 
         return response()->json([
-            'id'                => $commande->id,
-            'numero_commande'   => '#CMD-' . str_pad($commande->id, 3, '0', STR_PAD_LEFT),
-            'statut'            => $commande->status,
-            'total'             => $commande->total,
-            'created_at'        => $commande->created_at,
-            'adresse_livraison' => $commande->adresseLivraison->adresse ?? '',
-            'client_nom'        => $commande->user->name ?? 'N/A',
-            'client_email'      => $commande->user->email ?? '',
-            'items'             => $commande->puzzles->map(function ($puzzle) {
-                return [
-                    'id'            => $puzzle->id,
-                    'nom_produit'   => $puzzle->nom,
-                    'quantite'      => $puzzle->pivot->quantite,
-                    'prix_unitaire' => $puzzle->pivot->prix,
-                ];
-            }),
+            'id' => $commande->id,
+            'user_id' => $commande->user_id,
+            'total' => $commande->total,
+            'status' => $commande->status,
+            'date_commande' => $commande->date_commande,
+            'created_at' => $commande->created_at,
+            'updated_at' => $commande->updated_at,
+            'mode_paiement' => $commande->mode_paiement,
         ]);
     }
 
