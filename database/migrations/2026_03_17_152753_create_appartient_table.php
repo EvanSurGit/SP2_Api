@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->decimal('prix', 8, 2);
             $table->timestamps();
 
-            // Clés étrangères si tes tables existent déjà
+            // Clï¿½s ï¿½trangï¿½res si tes tables existent dï¿½jï¿½
             $table->foreign('id_Panier')->references('id')->on('paniers')->onDelete('cascade');
             $table->foreign('id_Puzzle')->references('id')->on('puzzles')->onDelete('cascade');
         });

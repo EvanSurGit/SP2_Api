@@ -8,35 +8,50 @@ use Illuminate\Support\Facades\DB;
 
 class CommandeController extends Controller
 {
-    // Afficher la liste des commandes en attente (statut 'payée' ou 'en attente')
+    // Afficher la liste des commandes en attente (statut 'payee' ou 'en attente')
     public function listeEnAttente()
     {
-        $commandes = Order::whereIn('status', ['payée', 'en_attente'])->with('puzzles')->get();
+        $commandes = Order::whereIn('status', ['payee', 'en_attente'])->with('puzzles')->get();
         return view('admin.commandes.en_attente', compact('commandes'));
     }
 
-    // API : Afficher le détail d'une commande en JSON
+// RÃ©cupÃ¨re toutes les commandes non expÃ©diÃ©es (en_attente ou validee)
+    public function nonExpediees()
+    {
+        $commandes = Order::whereIn('status', ['en_attente', 'validee'])
+            ->with(['puzzles', 'user', 'adresseLivraison'])
+            ->get();
+
+        return response()->json(
+            $commandes->map(function ($commande) {
+                return [
+                    'id' => $commande->id,
+                    'user_id' => $commande->user_id,
+                    'total' => $commande->total,
+                    'status' => $commande->status,
+                    'date_commande' => $commande->date_commande,
+                    'created_at' => $commande->created_at,
+                    'updated_at' => $commande->updated_at,
+                    'mode_paiement' => $commande->mode_paiement,
+                ];
+            })
+        );
+    }
+
+    // API : Afficher le dï¿½tail d'une commande en JSON
     public function show(int $id)
     {
         $commande = Order::with(['puzzles', 'user', 'adresseLivraison'])->findOrFail($id);
 
         return response()->json([
-            'id'                => $commande->id,
-            'numero_commande'   => '#CMD-' . str_pad($commande->id, 3, '0', STR_PAD_LEFT),
-            'statut'            => $commande->status,
-            'total'             => $commande->total,
-            'created_at'        => $commande->created_at,
-            'adresse_livraison' => $commande->adresseLivraison->adresse ?? '',
-            'client_nom'        => $commande->user->name ?? 'N/A',
-            'client_email'      => $commande->user->email ?? '',
-            'items'             => $commande->puzzles->map(function ($puzzle) {
-                return [
-                    'id'            => $puzzle->id,
-                    'nom_produit'   => $puzzle->nom,
-                    'quantite'      => $puzzle->pivot->quantite,
-                    'prix_unitaire' => $puzzle->pivot->prix,
-                ];
-            }),
+            'id' => $commande->id,
+            'user_id' => $commande->user_id,
+            'total' => $commande->total,
+            'status' => $commande->status,
+            'date_commande' => $commande->date_commande,
+            'created_at' => $commande->created_at,
+            'updated_at' => $commande->updated_at,
+            'mode_paiement' => $commande->mode_paiement,
         ]);
     }
 
@@ -44,24 +59,24 @@ class CommandeController extends Controller
     public function valider(int $id)
     {
         $commande = Order::findOrFail($id);
-        if ($commande->status === 'payée') {
-            $commande->status = 'validée';
+        if ($commande->status === 'payee') {
+            $commande->status = 'validee';
             $commande->save();
-            return redirect()->back()->with('success', "Commande #{$id} validée.");
+            return redirect()->back()->with('success', "Commande #{$id} validee.");
         }
-        return redirect()->back()->with('error', "La commande #{$id} ne peut pas être validée.");
+        return redirect()->back()->with('error', "La commande #{$id} ne peut pas etre validee.");
     }
 
-    // Marquer une commande comme expédiée
+    // Marquer une commande comme expï¿½diï¿½e
     public function expedier(int $id)
     {
         $commande = Order::findOrFail($id);
-        if ($commande->status === 'validée') {
-            $commande->status = 'expédiée';
+        if ($commande->status === 'validee') {
+            $commande->status = 'expediee';
             $commande->save();
-            return redirect()->back()->with('success', "Commande #{$id} marquée comme expédiée.");
+            return redirect()->back()->with('success', "Commande #{$id} marquee comme expediee.");
         }
-        return redirect()->back()->with('error', "La commande #{$id} ne peut pas être expédiée.");
+        return redirect()->back()->with('error', "La commande #{$id} ne peut pas etre expediee.");
     }
 
     // Supprimer une commande
@@ -72,16 +87,16 @@ class CommandeController extends Controller
             $commande->puzzles()->detach();
             $commande->delete();
         });
-        return redirect()->back()->with('success', "Commande #{$id} supprimée.");
+        return redirect()->back()->with('success', "Commande #{$id} supprimee.");
     }
     
-    // Afficher la page de détails (Vue Blade) pour l'administrateur
+    // Afficher la page de dï¿½tails (Vue Blade) pour l'administrateur
 public function detail(int $id)
 {
-    // On charge la commande avec toutes les relations nécessaires
+    // On charge la commande avec toutes les relations nï¿½cessaires
     $commande = Order::with(['puzzles', 'user', 'adresseLivraison'])->findOrFail($id);
 
-    // Retourne la vue admin avec les données de la commande
+    // Retourne la vue admin avec les donnï¿½es de la commande
     return view('admin.commandes.show', compact('commande'));
 }
 }
